@@ -334,6 +334,20 @@ implementation
 
 { TJsonBase }
 
+function DecimalSeparator: Char;
+  {$ifdef fpc}
+var
+  LFormatSettings: TFormatSettings;
+  {$endif}
+begin
+  {$ifndef fpc}
+  Result :=  FormatSettings.DecimalSeparator;
+  {$else}
+  LFormatSettings := DefaultFormatSettings;
+  Result :=  LFormatSettings.DecimalSeparator;
+  {$endif}
+end;
+
 function FixedTryStrToFloat(const S: string; out Value: Extended): Boolean;
 var
   FixedS: string;
@@ -410,6 +424,7 @@ end;
 constructor TJsonBase.Create(AOwner: TJsonBase);
 begin
   FOwner := AOwner;
+  JsonsUtils_GLB_DECIMALSEPARATOR := DecimalSeparator;
 end;
 
 function TJsonBase.Decode(const S: String): String;
