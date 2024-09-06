@@ -1,7 +1,7 @@
 json4delphi
 ===========
 
-JSON for Delphi, support for older versions of Delphi (6 or above)
+JSON for Delphi, support for older versions of Delphi e Lazarus (6 or above)
 
 Object-pascal native code, using classes only TList, TStrings and TStringList
 
