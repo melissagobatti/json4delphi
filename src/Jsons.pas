@@ -481,36 +481,49 @@ end;
 
 function TJsonBase.Encode(const S: String): String;
 var
-  I, UnicodeValue : Integer;
-  C: Char;
+  I,
+  lUnicodeValue: Integer;
+  lChar        : {$ifdef fpc}UnicodeChar{$else}Char{$endif};
+  lStream      : TStringStream;
 begin
-  Result := '';
-  for I := 1 to Length(S) do
-  begin
-    C := S[I];
-    case C of
-      '"':Result := Result + '\' + C;
-      '\': Result := Result + '\' + C;
-      '/': Result := Result + '\' + C;
-      #8: Result := Result + '\b';
-      #9: Result := Result + '\t';
-      #10: Result := Result + '\n';
-      #12: Result := Result + '\f';
-      #13: Result := Result + '\r';
-      else
-      if (C < WideChar(32)) or (C > WideChar(127)) then
-      begin
-        Result := result + '\u';
-        UnicodeValue := Ord(C);
-        Result := result + lowercase(IntToHex((UnicodeValue and 61440) shr 12,1));
-        Result := result + lowercase(IntToHex((UnicodeValue and 3840) shr 8,1));
-        Result := result + lowercase(IntToHex((UnicodeValue and 240) shr 4,1));
-        Result := result + lowercase(IntToHex((UnicodeValue and 15),1));
-      end
-      else
-       Result := Result + C;
-
+  lStream := TStringStream.Create;
+  try
+    // DICA: proteção extra para string vazia!
+    if S = '' then
+    begin
+      Result := '';
+      Exit;
     end;
+
+    for I := 1 to {$ifdef fpc}UTF8Length(S){$else}Length(S){$endif} do
+    begin
+      lChar := {$ifdef fpc}UnicodeString(S)[I]{$else}S[I]{$endif};
+      case lChar of
+        '"': lStream.WriteString('\' + lChar);
+        '\': lStream.WriteString('\' + lChar);
+        '/': lStream.WriteString('\' + lChar);
+         #8: lStream.WriteString('\b');
+         #9: lStream.WriteString('\t');
+        #10: lStream.WriteString('\n');
+        #12: lStream.WriteString('\f');
+        #13: lStream.WriteString('\r');
+      else
+        if (lChar < WideChar(32)) or (lChar > WideChar(127)) then
+        begin
+          lStream.WriteString('\u');
+          lUnicodeValue := Ord(lChar);
+          lStream.WriteString( lowercase( IntToHex((lUnicodeValue and 61440) shr 12, 1) ));
+          lStream.WriteString( lowercase( IntToHex((lUnicodeValue and 3840) shr 8, 1) ));
+          lStream.WriteString( lowercase( IntToHex((lUnicodeValue and 240) shr 4, 1) ));
+          lStream.WriteString( lowercase( IntToHex((lUnicodeValue and 15), 1)));
+        end
+        else
+          lStream.WriteString(lChar);
+      end;
+    end;
+    Result := lStream.DataString;
+  finally
+    lStream.Free;
   end;
 end;
 
@@ -1419,7 +1432,7 @@ begin
         begin
           CreateArrayIfNone;
           FJsonArray.Assign((Source as TJson).FJsonArray);
-        end;                       
+        end;
       jsObject:
         begin
           CreateObjectIfNone;
