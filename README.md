@@ -277,7 +277,3 @@ end;
 
 ------------------------------------------------------------------------
 
-## 📜 Licença
-
-MIT License © Melissa Treinamentos\
-https://melissatreinamentos.tec.br
